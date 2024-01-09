@@ -6,6 +6,7 @@ PA2: https://tbz.xdx.mybluehost.me/.website_f9975c5e/webgl_effects_anaglyphNEW2.
 ![image](https://github.com/HLEBUSHEKzla/VR/assets/57355468/60810fea-d593-4fbc-a653-6a446ed32e1b)
 
 PA3: https://tbz.xdx.mybluehost.me/.website_f9975c5e/webgl_effects_anaglyphNEW3.html
+![image](https://github.com/HLEBUSHEKzla/VR/assets/57355468/ecdf5969-e98f-4b4c-9068-5eb8ade0fa2f)
 ![image](https://github.com/HLEBUSHEKzla/VR/assets/57355468/fccf5f31-ebdd-4c5a-8ff0-1cbc404cfe79)
 ![image](https://github.com/HLEBUSHEKzla/VR/assets/57355468/d596a6cd-316e-41a3-a468-768a88942c12)
 ![image](https://github.com/HLEBUSHEKzla/VR/assets/57355468/f3a89466-62a3-4ba1-b24f-40208deca115)
