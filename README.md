@@ -11,3 +11,8 @@ PA3: https://tbz.xdx.mybluehost.me/.website_f9975c5e/webgl_effects_anaglyphNEW3.
 ![image](https://github.com/HLEBUSHEKzla/VR/assets/57355468/f3a89466-62a3-4ba1-b24f-40208deca115)
 ![image](https://github.com/HLEBUSHEKzla/VR/assets/57355468/dd526d7b-de5f-4c09-90ab-e6bfde986121)
 ![image](https://github.com/HLEBUSHEKzla/VR/assets/57355468/ab323cc3-c016-4aa4-8da1-f54017d3a2c5)
+
+PA4: https://tbz.xdx.mybluehost.me/.website_f9975c5e/webgl_effects_anaglyphNEW4.html
+
+Calculation&graphics work: https://tbz.xdx.mybluehost.me/.website_f9975c5e/webgl_effects_anaglyphNEWRGR.html
+![image](https://github.com/HLEBUSHEKzla/VR/assets/57355468/c0872cf7-b444-4acb-a779-e38dc04e50e8)
