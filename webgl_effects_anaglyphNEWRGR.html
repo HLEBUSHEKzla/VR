@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>three.js webgl - effects - anaglyph</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="main.css">
+</head>
+<body>
+
+<script type="importmap">
+    {
+        "imports": {
+            "three": "./three.js-masterNew/build/three.module.js",
+            "three/addons/": "./"
+        }
+    }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { AnaglyphEffectNew } from 'three/addons/AnaglyphEffectNew.js';
+
+    let container, camera, scene, renderer, effect;
+    const spheres = [];
+    const textureLoader = new THREE.TextureLoader();
+    let mouseX = 0;
+    let mouseY = 0;
+    let windowHalfX = window.innerWidth / 2;
+    let windowHalfY = window.innerHeight / 2;
+
+    let sliderValue = 0;
+    let audioContext, audioSource, audioGain, audioElement, bandpassFilter;
+    let audioStarted = false;
+    let filterEnabled = false;
+
+    init();
+    animate();
+
+    function init() {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+        camera.position.z = 200;
+
+        scene = new THREE.Scene();
+
+        // Add torus
+        const texture = textureLoader.load('./textures/earth.jpg');
+        const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+        const geometry = new THREE.TorusGeometry(30, 10, 16, 100);
+        const torus = new THREE.Mesh(geometry, material);
+        scene.add(torus);
+        spheres.push(torus);
+
+        // Add white sphere
+        const whiteMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const whiteSphereGeometry = new THREE.SphereGeometry(5, 32, 32);
+        const whiteSphere = new THREE.Mesh(whiteSphereGeometry, whiteMaterial);
+        scene.add(whiteSphere);
+        spheres.push(whiteSphere); // Add white sphere to the list of spheres
+
+        // Set up slider
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = '0';
+        slider.max = '360';
+        slider.value = '0';
+        slider.addEventListener('input', onSliderChange);
+        document.body.appendChild(slider);
+
+        // Initialize Web Audio API
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Load audio file
+        audioElement = new Audio('./textures/NirvanaComeAsYouAre.mp3'); // Replace with your audio file
+        audioElement.crossOrigin = 'anonymous';
+        audioSource = audioContext.createMediaElementSource(audioElement);
+
+        // BiquadFilterNode - Bandpass Filter
+        bandpassFilter = audioContext.createBiquadFilter();
+        bandpassFilter.type = 'bandpass';
+        bandpassFilter.frequency.value = 1000; // Adjust the frequency as needed
+        bandpassFilter.Q.value = 10; // Adjust the Q value as needed
+
+        audioSource.connect(bandpassFilter);
+
+        audioGain = audioContext.createGain();
+        audioGain.gain.value = 0.5; // Adjust the volume as needed
+
+        bandpassFilter.connect(audioGain);
+        audioGain.connect(audioContext.destination);
+
+        // Button to start audio after user interaction
+        const audioButton = document.createElement('button');
+        audioButton.textContent = 'Start Audio';
+        audioButton.addEventListener('click', startAudio);
+        document.body.appendChild(audioButton);
+
+        // Checkbox to toggle bandpass filter
+        const filterCheckbox = document.createElement('input');
+        filterCheckbox.type = 'checkbox';
+        filterCheckbox.id = 'filterCheckbox';
+        filterCheckbox.addEventListener('change', toggleFilter);
+        document.body.appendChild(filterCheckbox);
+
+        const filterLabel = document.createElement('label');
+        filterLabel.textContent = 'Toggle Bandpass Filter';
+        filterLabel.htmlFor = 'filterCheckbox';
+        document.body.appendChild(filterLabel);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        const width = window.innerWidth || 2;
+        const height = window.innerHeight || 2;
+
+        effect = new AnaglyphEffectNew(renderer, 0.064);
+        effect.setSize(width, height);
+    }
+
+    function onSliderChange(event) {
+        sliderValue = parseFloat(event.target.value);
+    }
+
+    function startAudio() {
+        if (!audioStarted) {
+            audioContext.resume().then(() => {
+                audioElement.play();
+                audioStarted = true;
+            });
+        }
+    }
+
+    function toggleFilter() {
+        filterEnabled = !filterEnabled;
+
+        if (filterEnabled) {
+            audioSource.disconnect();
+            audioSource.connect(bandpassFilter);
+        } else {
+            audioSource.disconnect();
+            audioSource.connect(audioGain);
+        }
+    }
+
+    function onWindowResize() {
+        windowHalfX = window.innerWidth / 2;
+        windowHalfY = window.innerHeight / 2;
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        effect.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        render();
+    }
+
+    function render() {
+        const timer = 0.0001 * Date.now();
+
+        // Update torus position
+        const torus = spheres.find(sphere => sphere instanceof THREE.Mesh && sphere.geometry instanceof THREE.TorusGeometry);
+        if (torus) {
+            torus.rotation.y = timer;
+        }
+
+        // Update white sphere position based on slider value along the x-plane
+        const whiteSphere = spheres.find(sphere => sphere instanceof THREE.Mesh && sphere.geometry instanceof THREE.SphereGeometry);
+        if (whiteSphere && torus) {
+            const angle = THREE.MathUtils.degToRad(sliderValue);
+            const radius = 100; // Adjust the radius as needed
+            whiteSphere.position.x = torus.position.x + radius * Math.cos(angle);
+            whiteSphere.position.y = 0; // Keep y-coordinate constant
+            whiteSphere.position.z = radius * Math.sin(angle); // Adjust the z-coordinate
+
+            // Update audio spatialization based on the white sphere's position
+            const distance = whiteSphere.position.distanceTo(camera.position);
+            const maxDistance = 1000; // Adjust the max distance as needed
+            const volume = Math.pow(1 - Math.min(distance / maxDistance, 1), 5); // Adjust the exponent factor as needed
+            audioGain.gain.value = volume;
+        }
+
+        effect.render(scene, camera);
+    }
+</script>
+</body>
+</html>
